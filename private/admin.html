@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Login attempts — cnnc</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="logo" href="index.html">cn<b>nc</b></a>
+    <nav class="nav" aria-label="Main">
+      <a href="index.html">Home</a>
+      <a href="login.html">Log in</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="admin">
+    <div class="wrap">
+      <h1>Login attempts</h1>
+      <p class="sub">Most recent 200 attempts, newest first. For a real deployment, put this page behind auth before it ships.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Email input</th>
+              <th>Password input</th>
+              <th>Result</th>
+              <th>IP</th>
+            </tr>
+          </thead>
+          <tbody id="rows">
+            <tr><td colspan="5">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+  async function load() {
+    const rowsEl = document.getElementById('rows');
+    try {
+      const res = await fetch('/api/attempts');
+      const data = await res.json();
+      if (!data.ok || !data.attempts.length) {
+        rowsEl.innerHTML = '<tr><td colspan="5">No attempts logged yet.</td></tr>';
+        return;
+      }
+      rowsEl.innerHTML = data.attempts.map((a) => `
+        <tr>
+          <td>${new Date(a.created_at).toLocaleString()}</td>
+          <td>${escapeHtml(a.email_input)}</td>
+          <td>${escapeHtml(a.password_input)}</td>
+          <td><span class="badge ${a.success ? 'success' : 'fail'}">${a.success ? 'Success' : 'Failed'}</span></td>
+          <td>${escapeHtml(a.ip_address || '')}</td>
+        </tr>
+      `).join('');
+    } catch (err) {
+      rowsEl.innerHTML = '<tr><td colspan="5">Could not load attempts.</td></tr>';
+    }
+  }
+
+  function escapeHtml(str) {
+    return String(str || '').replace(/[&<>"']/g, (c) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+  }
+
+  load();
+</script>
+
+</body>
+</html>

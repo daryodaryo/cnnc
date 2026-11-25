@@ -1,0 +1,22 @@
+databases:
+  - name: cnnc-db
+    plan: free
+    databaseName: cnnc
+    user: cnnc
+
+services:
+  - type: web
+    name: cnnc-web
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: cnnc-db
+          property: connectionString
+      - key: ADMIN_USER
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
